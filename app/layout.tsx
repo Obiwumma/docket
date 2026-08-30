@@ -22,10 +22,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      {/* We add bg-navy and text-white to the body so the whole site matches the navy theme */}
       <body className={`${geistSans.variable} ${geistMono.variable} bg-navy text-white antialiased`}>
         <Navbar />
-        {/* 'children' is whatever page the user is currently on (Home, About, etc.) */}
         <main className="min-h-screen">
           {children}
         </main>
