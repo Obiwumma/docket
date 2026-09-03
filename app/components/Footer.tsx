@@ -9,7 +9,6 @@ export default function Footer() {
           © {new Date().getFullYear()} Docket<span className="text-vibrant-blue">.</span> All rights reserved.
         </div>
 
-        {/* 2. Navigation Links */}
         <div className="flex items-center gap-6 text-sm font-medium text-ice-blue">
           <Link href="/" className="hover:text-white transition-colors">Home</Link>
           <Link href="/about" className="hover:text-white transition-colors">About Us</Link>

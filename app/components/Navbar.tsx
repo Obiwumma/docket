@@ -15,9 +15,12 @@ export default function Navbar() {
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
 
-        <button className="bg-vibrant-blue hover:opacity-90 text-white text-sm font-medium py-2 px-5 rounded-md transition-colors">
+        <Link
+          href="/login"
+          className="bg-vibrant-blue hover:opacity-90 text-white text-sm font-medium py-2 px-5 rounded-md transition-colors"
+        >
           Sign In
-        </button>
+        </Link>
 
       </div>
     </nav>
