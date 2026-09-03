@@ -1,20 +1,192 @@
-import React from 'react'
+"use client";
 
-function OnboardingPage() {
-    return (
-        <>
-            {/* onboaring */}
-            <section className="bg-white text-[#091540] py-20 px-6 text-center">
-                <div className="max-w-4xl mx-auto flex flex-col items-center gap-4">
-                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                        GET STARTED WITH DOCKET
-                    </h1>
-                </div>
-            </section>
+import React, { useState } from "react";
+import Link from "next/link";
 
-            {/* footer */}
-        </>
-    )
+export default function OnboardingPage() {
+  const [selectedRole, setSelectedRole] = useState<"lead" | "member" | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showErrorBanner, setShowErrorBanner] = useState(false);
+
+  const handleSelectRole = (role: "lead" | "member") => {
+    setSelectedRole(role);
+    setIsSubmitting(true);
+    setShowErrorBanner(false);
+
+    // Simulate onboarding setup delay
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1500);
+  };
+
+  const resetSelection = () => {
+    setSelectedRole(null);
+    setIsSubmitting(false);
+    setShowErrorBanner(false);
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-[#091540] text-white flex flex-col justify-between">
+      {/* Top Branding Bar */}
+      <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
+        <Link href="/" className="text-2xl font-bold tracking-tight text-white">
+          Docket<span className="text-[#1B2CC1]">.</span>
+        </Link>
+        <div className="text-xs font-bold uppercase tracking-widest text-white/70 border border-white/20 px-3 py-1">
+          STEP 01 / SETUP
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="w-full max-w-6xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center">
+        {/* Intro Header */}
+        <div className="max-w-2xl mb-10">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#1B2CC1] bg-white px-3 py-1 mb-4 inline-block">
+            ROLE SELECTION
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight uppercase leading-tight mt-2">
+            HOW WILL YOU USE DOCKET?
+          </h1>
+          <p className="text-lg text-gray-300 mt-3 font-normal">
+            Choose the option that best describes your role to get started with your workspace.
+          </p>
+        </div>
+
+        {/* Error Banner Demonstration */}
+        {showErrorBanner && (
+          <div className="mb-6 border-2 border-white bg-[#091540] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 border-2 border-white flex items-center justify-center font-bold text-xs">
+                !
+              </span>
+              <p className="text-sm font-semibold uppercase tracking-wide">
+                Something went wrong saving your selection. Please try again.
+              </p>
+            </div>
+            <button
+              onClick={resetSelection}
+              className="px-4 py-1 bg-white text-[#091540] text-xs font-bold uppercase hover:bg-[#1B2CC1] hover:text-white transition"
+            >
+              TRY AGAIN
+            </button>
+          </div>
+        )}
+
+        {/* 2-Column Role Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Card 01: Team Lead */}
+          <div
+            onClick={() => handleSelectRole("lead")}
+            className={`border-2 p-8 transition cursor-pointer flex flex-col justify-between ${
+              selectedRole === "lead"
+                ? "bg-[#1B2CC1] border-white"
+                : selectedRole === "member"
+                ? "bg-[#091540] border-white/20 opacity-40 pointer-events-none"
+                : "bg-[#091540] border-white/40 hover:border-white hover:bg-[#1B2CC1]"
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-4xl font-bold border-b-2 border-white pb-1">
+                  01
+                </span>
+                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 40 40" stroke="currentColor">
+                  <rect x="3" y="3" width="14" height="14" strokeWidth="2.5" />
+                  <rect x="23" y="3" width="14" height="14" strokeWidth="2.5" fill="currentColor" />
+                  <rect x="13" y="23" width="14" height="14" strokeWidth="2.5" />
+                </svg>
+              </div>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-2">
+                I&apos;M A TEAM LEAD
+              </p>
+              <h2 className="text-3xl font-bold uppercase tracking-tight mb-4">
+                CREATE A TEAM.
+              </h2>
+              <p className="text-gray-200 text-sm leading-relaxed">
+                Create a workspace, assign tasks, track project velocity, and manage team members with absolute clarity.
+              </p>
+            </div>
+
+            <div className="pt-10 border-t border-white/20 mt-8 flex items-center justify-between">
+              <span className="text-lg font-bold uppercase tracking-wide flex items-center gap-2">
+                {selectedRole === "lead" && isSubmitting ? (
+                  <>CREATING YOUR TEAM...</>
+                ) : (
+                  <>CREATE A TEAM &rarr;</>
+                )}
+              </span>
+              <span className="text-xs font-bold uppercase border border-white px-2 py-1">
+                ADMIN
+              </span>
+            </div>
+          </div>
+
+          {/* Card 02: Team Member */}
+          <div
+            onClick={() => handleSelectRole("member")}
+            className={`border-2 p-8 transition cursor-pointer flex flex-col justify-between ${
+              selectedRole === "member"
+                ? "bg-[#1B2CC1] border-white"
+                : selectedRole === "lead"
+                ? "bg-[#091540] border-white/20 opacity-40 pointer-events-none"
+                : "bg-[#091540] border-white/40 hover:border-white hover:bg-[#1B2CC1]"
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-4xl font-bold border-b-2 border-white pb-1">
+                  02
+                </span>
+                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 40 40" stroke="currentColor">
+                  <circle cx="12" cy="12" r="7" strokeWidth="2.5" />
+                  <circle cx="28" cy="12" r="7" strokeWidth="2.5" />
+                  <circle cx="20" cy="28" r="7" strokeWidth="2.5" fill="currentColor" />
+                </svg>
+              </div>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-2">
+                I&apos;M A MEMBER
+              </p>
+              <h2 className="text-3xl font-bold uppercase tracking-tight mb-4">
+                JOIN A TEAM.
+              </h2>
+              <p className="text-gray-200 text-sm leading-relaxed">
+                Join your organization&apos;s workspace, view assigned work, and complete tasks without distraction.
+              </p>
+            </div>
+
+            <div className="pt-10 border-t border-white/20 mt-8 flex items-center justify-between">
+              <span className="text-lg font-bold uppercase tracking-wide flex items-center gap-2">
+                {selectedRole === "member" && isSubmitting ? (
+                  <>JOINING YOUR TEAM...</>
+                ) : (
+                  <>JOIN A TEAM &rarr;</>
+                )}
+              </span>
+              <span className="text-xs font-bold uppercase border border-white px-2 py-1">
+                MEMBER
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Demo error trigger */}
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={() => setShowErrorBanner(!showErrorBanner)}
+            className="text-xs uppercase text-gray-400 hover:text-white underline"
+          >
+            Toggle Error State Demo
+          </button>
+        </div>
+      </main>
+
+      {/* Footer Status Bar */}
+      <footer className="w-full max-w-6xl mx-auto px-6 py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
+        <p>Docket Operating Environment &bull; Setup Protocol</p>
+        <p>Signed in with Google</p>
+      </footer>
+    </div>
+  );
 }
-
-export default OnboardingPage

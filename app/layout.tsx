@@ -29,12 +29,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-navy text-white antialiased`}>
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="min-h-screen">
           {children}
         </main>
 
-        <Footer/>
+        {/* <Footer/> */}
       </body>
     </html>
   );
