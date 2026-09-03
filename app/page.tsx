@@ -22,7 +22,7 @@ export default function Home() {
 
           <div className="w-full max-w-md bg-white p-4 rounded flex items-center justify-center">
             <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4lJdm61EALXDV-L0G5NqPjYhaY9IhNOJlBK3-non43bL74VoMw3UGl1TsTcsghFW-ziG0kmPoVmaMtlOzjnkJ-lggk-JO9Y4Fub-Gxx0up9_eM8KBZnTFafz5zyUiNqTyN6k6l5cRYQ2kxQG7gVutS72Pp9r87lAxLLCsdyhAsJjyHqMzU2NhSPQGlkGh0up83I9_LKPIC0XA5C_Qi9GJr1RzTizbYayY3R5zQ14izt6aYIYuea5J"
+              src="/images/project-illustration.png"
               alt="Project management illustration"
               className="w-full h-auto object-contain"
             />

@@ -4,25 +4,20 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
-  // Simple beginner state management
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Toggle visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validation alert banner state
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
-  // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Form submission handler matching design logic
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -45,7 +40,6 @@ export default function LoginPage() {
         <div className="w-full max-w-6xl mx-auto px-margin-mobile lg:px-gutter py-xl lg:py-xxl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
             
-            {/* Left Column: Brand & Architecture */}
             <div className="lg:col-span-6 flex flex-col space-y-xl">
               <div className="space-y-md">
                 <div className="font-display text-display uppercase tracking-tight text-white">
@@ -59,18 +53,16 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Embedded Flat Geometric Productivity Illustration Container */}
               <div className="border-2 border-white/20 bg-[#091540] p-md">
                 <div className="w-full h-64 relative bg-[#091540] flex items-center justify-center overflow-hidden border border-white/10">
                   <img
-                    alt="Docket project management architectural diagram"
+                    alt="Project management illustration"
                     className="w-full h-full object-contain p-4 filter contrast-125"
-                    src="https://lh3.googleusercontent.com/aida/AEtjO1WNECsCPAbeFtux0639YhMe2HbK3f0_x3hs-7EGYRORc7E4LAxncwfTMPW-56BXEXQKx5EmdfPcRF8t9BjnlbGSJpO0RPRrgkhYa-TM-d7lOJga83RWRu9GqXIHMyBqPiZ9u8C7zugUROHIfnV7-hoeSL8GAP28326Z_cubELg-534CiYFo9KrTMryQxc6eUbawVbGwO_Hv4NjcjEptpf9Rx7V9BOXFsXLP9RQKs1JH05j_X0Elr80OZR0"
+                    src="/images/project-illustration.png"
                   />
                 </div>
               </div>
 
-              {/* Strict Structural Value Propositions */}
               <div className="border-t-2 border-white/20 pt-lg space-y-md">
                 <div className="flex items-start space-x-md">
                   <span className="font-label-md text-label-md text-[#1B2CC1] font-bold tracking-widest pt-1">
@@ -116,10 +108,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Right Column: Sign Up Form */}
             <div className="lg:col-span-6 bg-white text-[#091540] p-lg lg:p-xl border-2 border-white rounded-none">
               
-              {/* Header */}
               <div className="border-b-2 border-[#091540] pb-md mb-lg">
                 <div className="font-label-sm text-label-sm uppercase font-bold tracking-widest text-[#1B2CC1] mb-xs">
                   GET STARTED
@@ -132,7 +122,6 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Form Interface */}
               <div className="space-y-sm mb-md">
                 <button
                   type="button"
@@ -167,7 +156,6 @@ export default function LoginPage() {
               </div>
 
               <form className="space-y-md" id="signupForm" onSubmit={handleFormSubmit}>
-                {/* Full Name */}
                 <div className="flex flex-col space-y-xs">
                   <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="fullName">
                     FULL NAME
@@ -184,7 +172,6 @@ export default function LoginPage() {
                   />
                 </div>
 
-                {/* Email Address */}
                 <div className="flex flex-col space-y-xs">
                   <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="email">
                     EMAIL ADDRESS
@@ -200,8 +187,6 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-
-                {/* Password Field */}
                 <div className="flex flex-col space-y-xs">
                   <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="password">
                     PASSWORD
@@ -231,8 +216,6 @@ export default function LoginPage() {
                       </span>
                     </button>
                   </div>
-
-                  {/* Requirement Note */}
                   <div className="flex items-center space-x-xs pt-xs">
                     <span className="w-1.5 h-1.5 bg-[#1B2CC1] inline-block"></span>
                     <p className="font-label-sm text-label-sm text-[#091540]">
@@ -240,8 +223,6 @@ export default function LoginPage() {
                     </p>
                   </div>
                 </div>
-
-                {/* Confirm Password Field */}
                 <div className="flex flex-col space-y-xs">
                   <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="confirmPassword">
                     CONFIRM PASSWORD
@@ -271,8 +252,6 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </div>
-
-                {/* Simulated High-Contrast Validation Demonstration Alert Box */}
                 <div
                   className={`border-2 border-[#091540] bg-[#091540] text-white p-md space-y-xs ${
                     showErrorBanner ? "" : "hidden"
@@ -287,9 +266,7 @@ export default function LoginPage() {
                     [DEMO ERROR STATE]: Passwords must match exactly and contain at least 8 characters.
                   </p>
                 </div>
-
-                {/* Terms Checkbox */}
-                <div className="pt-xs flex items-start space-x-sm">
+                {/* <div className="pt-xs flex items-start space-x-sm">
                   <input
                     className="mt-1 w-4 h-4 rounded-none border-2 border-[#091540] text-[#1B2CC1] focus:ring-0 focus:outline-none cursor-pointer"
                     id="terms"
@@ -310,9 +287,8 @@ export default function LoginPage() {
                     </a>
                     .
                   </label>
-                </div>
+                </div> */}
 
-                {/* Primary Submit CTA */}
                 <div className="pt-sm">
                   <button
                     className={`w-full h-14 font-label-md text-label-md uppercase font-bold tracking-wider transition-colors flex items-center justify-center ${
@@ -330,33 +306,16 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                {/* Account Switch Link */}
                 <div className="text-center pt-xs">
                   <p className="font-body-md text-body-md text-[#091540]">
                     Already have an account?{" "}
-                    <Link className="font-bold text-[#1B2CC1] underline hover:text-[#091540] ml-xs" href="/login">
+                    {/* <Link className="font-bold text-[#1B2CC1] underline hover:text-[#091540] ml-xs" href="/login">
                       Sign in
-                    </Link>
+                    </Link> */}
                   </p>
                 </div>
               </form>
-
-              {/* Minimal Error State Demonstration Trigger */}
-              <div className="mt-lg pt-md border-t-2 border-[#091540] flex items-center justify-between">
-                <span className="font-label-sm text-label-sm uppercase font-bold text-[#091540]">
-                  Test Design System State:
-                </span>
-                <button
-                  className="font-label-sm text-label-sm uppercase font-bold text-white bg-[#091540] px-sm py-1 hover:bg-[#1B2CC1] transition-colors"
-                  onClick={() => setShowErrorBanner(!showErrorBanner)}
-                  type="button"
-                >
-                  Toggle Validation Alert
-                </button>
-              </div>
-
             </div>
-
           </div>
         </div>
       </div>
