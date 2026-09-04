@@ -27,19 +27,13 @@ export default function OnboardingPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#091540] text-white flex flex-col justify-between">
-      {/* Top Branding Bar */}
       <header className="w-full max-w-6xl mx-auto px-6 pt-8 pb-4 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold tracking-tight text-white">
           Docket<span className="text-[#1B2CC1]">.</span>
         </Link>
-        <div className="text-xs font-bold uppercase tracking-widest text-white/70 border border-white/20 px-3 py-1">
-          STEP 01 / SETUP
-        </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="w-full max-w-6xl mx-auto px-6 py-10 flex-1 flex flex-col justify-center">
-        {/* Intro Header */}
         <div className="max-w-2xl mb-10">
           <span className="text-xs font-bold uppercase tracking-widest text-[#1B2CC1] bg-white px-3 py-1 mb-4 inline-block">
             ROLE SELECTION
@@ -52,7 +46,6 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        {/* Error Banner Demonstration */}
         {showErrorBanner && (
           <div className="mb-6 border-2 border-white bg-[#091540] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -72,9 +65,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* 2-Column Role Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Card 01: Team Lead */}
           <div
             onClick={() => handleSelectRole("lead")}
             className={`border-2 p-8 transition cursor-pointer flex flex-col justify-between ${
@@ -122,7 +113,6 @@ export default function OnboardingPage() {
             </div>
           </div>
 
-          {/* Card 02: Team Member */}
           <div
             onClick={() => handleSelectRole("member")}
             className={`border-2 p-8 transition cursor-pointer flex flex-col justify-between ${
@@ -170,23 +160,8 @@ export default function OnboardingPage() {
             </div>
           </div>
         </div>
-
-        {/* Demo error trigger */}
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={() => setShowErrorBanner(!showErrorBanner)}
-            className="text-xs uppercase text-gray-400 hover:text-white underline"
-          >
-            Toggle Error State Demo
-          </button>
-        </div>
       </main>
 
-      {/* Footer Status Bar */}
-      <footer className="w-full max-w-6xl mx-auto px-6 py-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
-        <p>Docket Operating Environment &bull; Setup Protocol</p>
-        <p>Signed in with Google</p>
-      </footer>
     </div>
   );
 }

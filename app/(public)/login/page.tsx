@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [fullName, setFullName] = useState("");
@@ -125,6 +126,7 @@ export default function LoginPage() {
               <div className="space-y-sm mb-md">
                 <button
                   type="button"
+                  onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
                   className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-sm font-label-md text-label-md uppercase font-bold tracking-wider"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -135,6 +137,7 @@ export default function LoginPage() {
 
                 <button
                   type="button"
+                  onClick={() => signIn("github", { callbackUrl: "/onboarding" })}
                   className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-sm font-label-md text-label-md uppercase font-bold tracking-wider"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -266,29 +269,7 @@ export default function LoginPage() {
                     [DEMO ERROR STATE]: Passwords must match exactly and contain at least 8 characters.
                   </p>
                 </div>
-                {/* <div className="pt-xs flex items-start space-x-sm">
-                  <input
-                    className="mt-1 w-4 h-4 rounded-none border-2 border-[#091540] text-[#1B2CC1] focus:ring-0 focus:outline-none cursor-pointer"
-                    id="terms"
-                    name="terms"
-                    required
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                  />
-                  <label className="font-body-md text-body-md text-[#091540] select-none cursor-pointer" htmlFor="terms">
-                    I agree to the{" "}
-                    <a className="font-bold text-[#1B2CC1] underline hover:text-[#091540]" href="#">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a className="font-bold text-[#1B2CC1] underline hover:text-[#091540]" href="#">
-                      Privacy Policy
-                    </a>
-                    .
-                  </label>
-                </div> */}
-
+                
                 <div className="pt-sm">
                   <button
                     className={`w-full h-14 font-label-md text-label-md uppercase font-bold tracking-wider transition-colors flex items-center justify-center ${
@@ -308,10 +289,7 @@ export default function LoginPage() {
 
                 <div className="text-center pt-xs">
                   <p className="font-body-md text-body-md text-[#091540]">
-                    Already have an account?{" "}
-                    {/* <Link className="font-bold text-[#1B2CC1] underline hover:text-[#091540] ml-xs" href="/login">
-                      Sign in
-                    </Link> */}
+                    Already have an account?
                   </p>
                 </div>
               </form>
