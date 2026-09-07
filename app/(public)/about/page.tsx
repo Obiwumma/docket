@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AboutPage() {
   return (
     <div className="w-full min-h-screen bg-white text-[#091540]">
@@ -86,9 +88,9 @@ export default function AboutPage() {
           <p className="text-lg text-gray-200">
             Join thousands of teams getting work done with Docket.
           </p>
-          <button className="bg-white text-[#091540] font-bold py-3 px-8 rounded hover:bg-gray-100 transition">
+          <Link href="/login" className="bg-white text-[#091540] font-bold py-3 px-8 rounded hover:bg-gray-100 transition">
             GET STARTED NOW
-          </button>
+          </Link>
         </div>
       </section>
     </div>

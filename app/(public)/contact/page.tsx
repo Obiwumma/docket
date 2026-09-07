@@ -78,13 +78,13 @@ export default function ContactPage() {
 
               <div className="flex flex-col gap-1 border-b border-gray-700 pb-4">
                 <span className="text-sm text-[#1B2CC1] font-bold">OFFICE LOCATION</span>
-                <span className="text-lg font-semibold">100 Tech Plaza, Suite 400<span className="block text-gray-300 text-sm font-normal">San Francisco, CA 94107</span></span>
+                <span className="text-lg font-semibold"> D12, Phase 4, kubwa<span className="block text-gray-300 text-sm font-normal">FCT, Abuja</span></span>
               </div>
 
               <div className="flex flex-col gap-1">
                 <span className="text-sm text-[#1B2CC1] font-bold">SUPPORT HOURS</span>
                 <span className="text-lg font-semibold">Monday - Friday</span>
-                <span className="text-gray-300 text-sm">9:00 AM - 6:00 PM EST</span>
+                <span className="text-gray-300 text-sm">9:00 AM - 5:00 PM WAT</span>
               </div>
             </div>
 

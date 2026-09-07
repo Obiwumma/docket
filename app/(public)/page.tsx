@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="w-full">
@@ -11,12 +13,12 @@ export default function Home() {
               Plan work, assign tasks, and keep your team moving without unnecessary complexity.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <button className="bg-[#1B2CC1] text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition">
+              <Link href="/login" className="bg-[#1B2CC1] text-white font-bold py-3 px-6 rounded hover:bg-blue-700 transition">
                 START NOW
-              </button>
-              <button className="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded hover:bg-white hover:text-[#091540] transition">
+              </Link>
+              <Link href="/about" className="bg-transparent border-2 border-white text-white font-bold py-3 px-6 rounded hover:bg-white hover:text-[#091540] transition">
                 LEARN MORE
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -103,9 +105,9 @@ export default function Home() {
           <p className="text-lg text-gray-200">
             Give your team a simpler way to manage work.
           </p>
-          <button className="bg-white text-[#091540] font-bold py-3 px-8 rounded mt-4 hover:bg-gray-100 transition">
+          <Link href="/login" className="bg-white text-[#091540] font-bold py-3 px-8 rounded mt-4 hover:bg-gray-100 transition">
             START NOW
-          </button>
+          </Link>
         </div>
       </section>
     </div>

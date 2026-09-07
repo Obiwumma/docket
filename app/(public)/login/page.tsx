@@ -9,7 +9,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -36,25 +35,26 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative w-full min-h-screen lg:pt-0">
+    <main className="relative w-full min-h-screen bg-[#091540]">
       <div className="flex flex-col w-full bg-[#091540] text-white">
-        <div className="w-full max-w-6xl mx-auto px-margin-mobile lg:px-gutter py-xl lg:py-xxl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+        <div className="w-full max-w-6xl mx-auto px-6 py-12 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
-            <div className="lg:col-span-6 flex flex-col space-y-xl">
-              <div className="space-y-md">
-                <div className="font-display text-display uppercase tracking-tight text-white">
+            {/* Left Column: Brand & Architecture */}
+            <div className="lg:col-span-6 max-lg:hidden flex flex-col space-y-8">
+              <div className="space-y-4">
+                <div className="text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white">
                   Docket<span className="text-[#1B2CC1]">.</span>
                 </div>
-                <h1 className="font-headline-lg text-headline-lg uppercase font-bold text-white tracking-tight leading-tight">
+                <h1 className="text-2xl lg:text-3xl uppercase font-bold text-white tracking-tight leading-tight">
                   PROJECT MANAGEMENT.<br />WITHOUT THE NOISE.
                 </h1>
-                <p className="font-body-lg text-body-lg text-white max-w-md font-normal opacity-90">
+                <p className="text-lg text-white max-w-md font-normal opacity-90">
                   Organize your team&apos;s work, assign tasks, and keep projects moving with absolute clarity.
                 </p>
               </div>
 
-              <div className="border-2 border-white/20 bg-[#091540] p-md">
+              <div className="border-2 border-white/20 bg-[#091540] p-4">
                 <div className="w-full h-64 relative bg-[#091540] flex items-center justify-center overflow-hidden border border-white/10">
                   <img
                     alt="Project management illustration"
@@ -64,44 +64,44 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="border-t-2 border-white/20 pt-lg space-y-md">
-                <div className="flex items-start space-x-md">
-                  <span className="font-label-md text-label-md text-[#1B2CC1] font-bold tracking-widest pt-1">
+              <div className="border-t-2 border-white/20 pt-6 space-y-4">
+                <div className="flex items-start space-x-4">
+                  <span className="text-sm text-[#1B2CC1] font-bold tracking-widest pt-1">
                     01
                   </span>
                   <div>
-                    <span className="font-label-md text-label-md uppercase font-bold text-white tracking-wider">
+                    <span className="text-sm uppercase font-bold text-white tracking-wider">
                       CREATE
                     </span>
-                    <p className="font-body-md text-body-md text-white/80">
+                    <p className="text-sm text-white/80">
                       Define tasks with rigorous, distraction-free clarity.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-md">
-                  <span className="font-label-md text-label-md text-[#1B2CC1] font-bold tracking-widest pt-1">
+                <div className="flex items-start space-x-4">
+                  <span className="text-sm text-[#1B2CC1] font-bold tracking-widest pt-1">
                     02
                   </span>
                   <div>
-                    <span className="font-label-md text-label-md uppercase font-bold text-white tracking-wider">
+                    <span className="text-sm uppercase font-bold text-white tracking-wider">
                       ASSIGN
                     </span>
-                    <p className="font-body-md text-body-md text-white/80">
+                    <p className="text-sm text-white/80">
                       Distribute team deliverables seamlessly across modules.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-md">
-                  <span className="font-label-md text-label-md text-[#1B2CC1] font-bold tracking-widest pt-1">
+                <div className="flex items-start space-x-4">
+                  <span className="text-sm text-[#1B2CC1] font-bold tracking-widest pt-1">
                     03
                   </span>
                   <div>
-                    <span className="font-label-md text-label-md uppercase font-bold text-white tracking-wider">
+                    <span className="text-sm uppercase font-bold text-white tracking-wider">
                       COMPLETE
                     </span>
-                    <p className="font-body-md text-body-md text-white/80">
+                    <p className="text-sm text-white/80">
                       Track project velocity directly without redundant noise.
                     </p>
                   </div>
@@ -109,25 +109,26 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-6 bg-white text-[#091540] p-lg lg:p-xl border-2 border-white rounded-none">
+            {/* Right Column: Sign Up Form */}
+            <div className="lg:col-span-6 bg-white text-[#091540] p-6 lg:p-8 border-2 border-white rounded-none">
               
-              <div className="border-b-2 border-[#091540] pb-md mb-lg">
-                <div className="font-label-sm text-label-sm uppercase font-bold tracking-widest text-[#1B2CC1] mb-xs">
+              <div className="border-b-2 border-[#091540] pb-4 mb-6">
+                <div className="text-xs uppercase font-bold tracking-widest text-[#1B2CC1] mb-1">
                   GET STARTED
                 </div>
-                <h2 className="font-headline-lg text-headline-lg uppercase font-bold text-[#091540] tracking-tight">
+                <h2 className="text-2xl lg:text-3xl uppercase font-bold text-[#091540] tracking-tight">
                   CREATE YOUR ACCOUNT.
                 </h2>
-                <p className="font-body-md text-body-md text-[#091540] mt-xs">
+                <p className="text-sm text-[#091540] mt-1">
                   Start organizing your team&apos;s work with Docket.
                 </p>
               </div>
 
-              <div className="space-y-sm mb-md">
+              <div className="space-y-3 mb-6">
                 <button
                   type="button"
                   onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
-                  className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-sm font-label-md text-label-md uppercase font-bold tracking-wider"
+                  className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-2 text-sm uppercase font-bold tracking-wider"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                     <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
@@ -138,7 +139,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => signIn("github", { callbackUrl: "/onboarding" })}
-                  className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-sm font-label-md text-label-md uppercase font-bold tracking-wider"
+                  className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-2 text-sm uppercase font-bold tracking-wider"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                     <path
@@ -150,21 +151,21 @@ export default function LoginPage() {
                   <span>Sign in with GitHub</span>
                 </button>
 
-                <div className="relative flex items-center justify-center py-xs">
+                <div className="relative flex items-center justify-center py-1">
                   <div className="w-full border-t-2 border-[#091540]/20 absolute"></div>
-                  <span className="relative bg-white px-md font-label-sm text-label-sm uppercase font-bold text-[#091540] tracking-widest">
+                  <span className="relative bg-white px-4 text-xs uppercase font-bold text-[#091540] tracking-widest">
                     OR WITH EMAIL
                   </span>
                 </div>
               </div>
 
-              <form className="space-y-md" id="signupForm" onSubmit={handleFormSubmit}>
-                <div className="flex flex-col space-y-xs">
-                  <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="fullName">
+              <form className="space-y-4" id="signupForm" onSubmit={handleFormSubmit}>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-sm uppercase font-bold text-[#091540]" htmlFor="fullName">
                     FULL NAME
                   </label>
                   <input
-                    className="w-full h-12 px-md border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 font-body-md text-body-md bg-white focus:outline-none focus:border-[#1B2CC1]"
+                    className="w-full h-12 px-4 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 text-sm bg-white focus:outline-none focus:border-[#1B2CC1]"
                     id="fullName"
                     name="fullName"
                     placeholder="Enter your full name"
@@ -175,12 +176,12 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div className="flex flex-col space-y-xs">
-                  <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="email">
+                <div className="flex flex-col space-y-1">
+                  <label className="text-sm uppercase font-bold text-[#091540]" htmlFor="email">
                     EMAIL ADDRESS
                   </label>
                   <input
-                    className="w-full h-12 px-md border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 font-body-md text-body-md bg-white focus:outline-none focus:border-[#1B2CC1]"
+                    className="w-full h-12 px-4 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 text-sm bg-white focus:outline-none focus:border-[#1B2CC1]"
                     id="email"
                     name="email"
                     placeholder="Enter your email"
@@ -190,13 +191,14 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                <div className="flex flex-col space-y-xs">
-                  <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="password">
+
+                <div className="flex flex-col space-y-1">
+                  <label className="text-sm uppercase font-bold text-[#091540]" htmlFor="password">
                     PASSWORD
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      className={`w-full h-12 pl-md pr-12 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 font-body-md text-body-md bg-white focus:outline-none focus:border-[#1B2CC1] ${
+                      className={`w-full h-12 pl-4 pr-12 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 text-sm bg-white focus:outline-none focus:border-[#1B2CC1] ${
                         showErrorBanner ? "border-4" : ""
                       }`}
                       id="password"
@@ -210,29 +212,30 @@ export default function LoginPage() {
                     />
                     <button
                       aria-label="Toggle password visibility"
-                      className="absolute right-0 top-0 bottom-0 px-md flex items-center justify-center text-[#091540] hover:text-[#1B2CC1] transition-colors"
+                      className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-[#091540] hover:text-[#1B2CC1] transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-headline-md" id="passwordToggleIcon">
+                      <span className="material-symbols-outlined text-xl" id="passwordToggleIcon">
                         {showPassword ? "visibility_off" : "visibility"}
                       </span>
                     </button>
                   </div>
-                  <div className="flex items-center space-x-xs pt-xs">
+                  <div className="flex items-center space-x-1 pt-1">
                     <span className="w-1.5 h-1.5 bg-[#1B2CC1] inline-block"></span>
-                    <p className="font-label-sm text-label-sm text-[#091540]">
+                    <p className="text-xs text-[#091540]">
                       Password must contain at least 8 characters.
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col space-y-xs">
-                  <label className="font-label-md text-label-md uppercase font-bold text-[#091540]" htmlFor="confirmPassword">
+
+                <div className="flex flex-col space-y-1">
+                  <label className="text-sm uppercase font-bold text-[#091540]" htmlFor="confirmPassword">
                     CONFIRM PASSWORD
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      className={`w-full h-12 pl-md pr-12 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 font-body-md text-body-md bg-white focus:outline-none focus:border-[#1B2CC1] ${
+                      className={`w-full h-12 pl-4 pr-12 border-2 border-[#091540] text-[#091540] placeholder:text-[#091540]/40 text-sm bg-white focus:outline-none focus:border-[#1B2CC1] ${
                         showErrorBanner ? "border-4" : ""
                       }`}
                       id="confirmPassword"
@@ -245,34 +248,35 @@ export default function LoginPage() {
                     />
                     <button
                       aria-label="Toggle confirm password visibility"
-                      className="absolute right-0 top-0 bottom-0 px-md flex items-center justify-center text-[#091540] hover:text-[#1B2CC1] transition-colors"
+                      className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-[#091540] hover:text-[#1B2CC1] transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-headline-md" id="confirmPasswordToggleIcon">
+                      <span className="material-symbols-outlined text-xl" id="confirmPasswordToggleIcon">
                         {showConfirmPassword ? "visibility_off" : "visibility"}
                       </span>
                     </button>
                   </div>
                 </div>
+
                 <div
-                  className={`border-2 border-[#091540] bg-[#091540] text-white p-md space-y-xs ${
+                  className={`border-2 border-[#091540] bg-[#091540] text-white p-4 space-y-1 ${
                     showErrorBanner ? "" : "hidden"
                   }`}
                   id="errorDemoBanner"
                 >
-                  <div className="flex items-center space-x-xs font-label-md text-label-md uppercase font-bold text-white">
-                    <span className="material-symbols-outlined text-headline-md text-white">error</span>
+                  <div className="flex items-center space-x-2 text-sm uppercase font-bold text-white">
+                    <span className="material-symbols-outlined text-xl text-white">error</span>
                     <span>ATTENTION REQUIRED</span>
                   </div>
-                  <p className="font-body-md text-body-md text-white">
+                  <p className="text-sm text-white">
                     [DEMO ERROR STATE]: Passwords must match exactly and contain at least 8 characters.
                   </p>
                 </div>
                 
-                <div className="pt-sm">
+                <div className="pt-2">
                   <button
-                    className={`w-full h-14 font-label-md text-label-md uppercase font-bold tracking-wider transition-colors flex items-center justify-center ${
+                    className={`w-full h-14 text-sm uppercase font-bold tracking-wider transition-colors flex items-center justify-center ${
                       isSubmitted
                         ? "bg-[#091540] text-white"
                         : isSubmitting
@@ -287,8 +291,8 @@ export default function LoginPage() {
                   </button>
                 </div>
 
-                <div className="text-center pt-xs">
-                  <p className="font-body-md text-body-md text-[#091540]">
+                <div className="text-center pt-1">
+                  <p className="text-sm text-[#091540]">
                     Already have an account?
                   </p>
                 </div>
