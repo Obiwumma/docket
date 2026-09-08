@@ -1,73 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
 
-export default function MemberDashboard() {
-  // Simple array of tasks in state
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Finalize Q3 Marketing Report",
-      description: "Compile data from analytics team and draft the executive summary for the upcoming board meeting.",
-      status: "IN PROGRESS",
-      dueDate: "Oct 24, 2023",
-      assignedDate: "Oct 18, 2023",
-      completed: false,
-      priority: "normal"
-    },
-    {
-      id: 2,
-      title: "Review UI Component Library Updates",
-      description: "Audit the new button and input states for accessibility compliance before merging to main.",
-      status: "HIGH PRIORITY",
-      dueDate: "Today",
-      assignedDate: "Oct 20, 2023",
-      completed: false,
-      priority: "high"
-    },
-    {
-      id: 3,
-      title: "Client Onboarding Call - Acme Corp",
-      description: "Initial kickoff meeting to discuss project timelines and required deliverables.",
-      status: "TO DO",
-      dueDate: "Oct 28, 2023",
-      assignedDate: "Oct 21, 2023",
-      completed: false,
-      priority: "normal"
-    },
-    {
-      id: 4,
-      title: "Weekly Team Sync Prep",
-      description: "Gather agenda items from team leads.",
-      status: "DONE",
-      dueDate: "Oct 19, 2023",
-      assignedDate: "Oct 17, 2023",
-      completed: true,
-      priority: "normal"
-    },
-    {
-      id: 5,
-      title: "Update API Documentation",
-      description: "Document new v2 endpoints for user authentication.",
-      status: "DONE",
-      dueDate: "Oct 18, 2023",
-      assignedDate: "Oct 16, 2023",
-      completed: true,
-      priority: "normal"
-    }
-  ]);
+interface MemberTask {
+  id: string | number;
+  title: string;
+  description?: string;
+  status: string;
+  dueDate: string;
+  assignedDate?: string;
+  completed: boolean;
+  priority?: string;
+}
 
-  // Basic function to toggle task completion
-  function toggleTask(id: number) {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === id) {
-        return { ...task, completed: !task.completed };
+export default function MemberDashboard() {
+  const [tasks, setTasks] = useState<MemberTask[]>([]);
+
+  // Fetch tasks from Firestore on mount
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const res = await fetch("/api/tasks");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tasks && data.tasks.length > 0) {
+            setTasks(data.tasks);
+          } else {
+            // Default sample tasks if database is empty
+            setTasks([
+              {
+                id: "1",
+                title: "Finalize Q3 Marketing Report",
+                description: "Compile data from analytics team and draft the executive summary for the board meeting.",
+                status: "IN PROGRESS",
+                dueDate: "Oct 24, 2023",
+                assignedDate: "Oct 18, 2023",
+                completed: false,
+                priority: "normal",
+              },
+              {
+                id: "2",
+                title: "Review UI Component Library Updates",
+                description: "Audit button and input states for accessibility compliance.",
+                status: "HIGH PRIORITY",
+                dueDate: "Today",
+                assignedDate: "Oct 20, 2023",
+                completed: false,
+                priority: "high",
+              },
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading member tasks:", error);
       }
-      return task;
-    });
-    setTasks(updatedTasks);
+    }
+    loadTasks();
+  }, []);
+
+  // Update task completion in Firestore via UI checkbox / card click (updateDoc function)
+  async function toggleTask(id: string | number) {
+    const targetTask = tasks.find((t) => t.id === id);
+    if (!targetTask) return;
+
+    const newCompleted = !targetTask.completed;
+    const newStatus = newCompleted ? "DONE" : "IN PROGRESS";
+
+    // Optimistic UI update
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: newCompleted, status: newStatus } : task
+      )
+    );
+
+    try {
+      await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completed: newCompleted,
+          status: newStatus,
+        }),
+      });
+    } catch (error) {
+      console.error("Error updating task status in Firestore:", error);
+    }
   }
 
   // Count active and completed tasks

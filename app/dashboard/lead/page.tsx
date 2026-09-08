@@ -1,81 +1,124 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
 
+interface Task {
+  id: string | number;
+  title: string;
+  assignee: string;
+  dueDate: string;
+  status: string;
+  completed: boolean;
+  description?: string;
+}
+
 export default function LeadDashboard() {
-  // Simple state for tasks
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Q3 Marketing Strategy Deck",
-      assignee: "Sarah Jenkins",
-      dueDate: "Oct 12, 2023",
-      status: "In Progress",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Client Onboarding Portal Update",
-      assignee: "Marcus Vance",
-      dueDate: "Oct 15, 2023",
-      status: "To Do",
-      completed: false,
-    },
-    {
-      id: 3,
-      title: "Server Migration Prep",
-      assignee: "David Chen",
-      dueDate: "Oct 10, 2023",
-      status: "Completed",
-      completed: true,
-    },
-  ]);
-
-  // Form toggle state
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [isSubmittingTask, setIsSubmittingTask] = useState(false);
 
-  // Simple form input states
+  // Form input states
   const [newTitle, setNewTitle] = useState("");
   const [newAssignee, setNewAssignee] = useState("Sarah Jenkins");
   const [newDueDate, setNewDueDate] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
-  // Function to toggle task completion
-  function toggleTask(id: number) {
-    const updated = tasks.map((task) => {
-      if (task.id === id) {
-        return {
-          ...task,
-          completed: !task.completed,
-          status: !task.completed ? "Completed" : "In Progress",
-        };
+  // Fetch tasks from Firestore on load
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        const res = await fetch("/api/tasks");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.tasks && data.tasks.length > 0) {
+            setTasks(data.tasks);
+          } else {
+            // Default sample tasks if database is fresh
+            setTasks([
+              {
+                id: "1",
+                title: "Q3 Marketing Strategy Deck",
+                assignee: "Sarah Jenkins",
+                dueDate: "Oct 12, 2023",
+                status: "In Progress",
+                completed: false,
+              },
+              {
+                id: "2",
+                title: "Client Onboarding Portal Update",
+                assignee: "Marcus Vance",
+                dueDate: "Oct 15, 2023",
+                status: "To Do",
+                completed: false,
+              },
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading tasks:", error);
       }
-      return task;
-    });
-    setTasks(updated);
+    }
+    loadTasks();
+  }, []);
+
+  // Toggle task completion status in Firestore
+  async function toggleTask(id: string | number) {
+    const targetTask = tasks.find((t) => t.id === id);
+    if (!targetTask) return;
+
+    const newCompleted = !targetTask.completed;
+    const newStatus = newCompleted ? "Completed" : "In Progress";
+
+    // Optimistic UI update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: newCompleted, status: newStatus } : t))
+    );
+
+    try {
+      await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: newCompleted, status: newStatus }),
+      });
+    } catch (error) {
+      console.error("Error updating task in Firestore:", error);
+    }
   }
 
-  // Function to add a new task
-  function handleAddTask(e: React.FormEvent) {
+  // Create new task document in Firestore
+  async function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
-    if (!newTitle) return;
+    if (!newTitle.trim()) return;
 
-    const newTask = {
-      id: Date.now(),
-      title: newTitle,
-      assignee: newAssignee,
-      dueDate: newDueDate || "Oct 30, 2023",
-      status: "To Do",
-      completed: false,
-    };
+    setIsSubmittingTask(true);
 
-    setTasks([...tasks, newTask]);
-    setNewTitle("");
-    setNewDueDate("");
-    setNewDescription("");
-    setShowForm(false);
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          assignee: newAssignee,
+          dueDate: newDueDate || "Oct 30, 2023",
+          description: newDescription,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTasks((prev) => [data.task, ...prev]);
+        setNewTitle("");
+        setNewDueDate("");
+        setNewDescription("");
+        setShowForm(false);
+      }
+    } catch (error) {
+      console.error("Error pushing new task to Firestore collection:", error);
+    } finally {
+      setIsSubmittingTask(false);
+    }
   }
 
   // Calculate weekly progress percentage
