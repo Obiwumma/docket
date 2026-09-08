@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import DashboardNavbar from "@/app/components/DashboardNavbar";
 
 export default function TeamChatPage() {
   // Simple state for channels
@@ -55,37 +55,7 @@ export default function TeamChatPage() {
 
   return (
     <div className="min-h-screen bg-[#091540] text-white">
-      {/* Navigation Header */}
-      <header className="bg-[#091540] border-b border-gray-800 py-4 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <Link href="/" className="text-2xl font-bold text-white tracking-tight">
-            Docket<span className="text-[#1B2CC1]">.</span>
-          </Link>
-
-          <div className="flex items-center gap-4 text-sm font-medium">
-            <Link href="/dashboard/member" className="text-gray-300 hover:text-white transition">
-              Member Dashboard
-            </Link>
-            <Link href="/dashboard/lead" className="text-gray-300 hover:text-white transition">
-              Lead Dashboard
-            </Link>
-            <span className="bg-[#1B2CC1] text-white font-bold px-3 py-1 rounded text-xs">
-              Team Chat
-            </span>
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  localStorage.removeItem("docket_user_role");
-                }
-                signOut({ callbackUrl: "/login" });
-              }}
-              className="ml-2 border border-gray-600 hover:border-white text-gray-300 hover:text-white px-3 py-1 text-xs font-bold uppercase transition-colors rounded"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
+      <DashboardNavbar />
 
       {/* Main Container */}
       <div className="max-w-6xl mx-auto py-8 px-6 flex flex-col gap-6">
