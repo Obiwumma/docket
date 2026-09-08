@@ -25,17 +25,17 @@ export default function LeadDashboard() {
   const [newDueDate, setNewDueDate] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
-  // Fetch tasks from Firestore on load
+  // Step 1: Use useEffect hook to fetch existing tasks from Firestore when the component loads
   useEffect(() => {
     async function loadTasks() {
       try {
-        const res = await fetch("/api/tasks");
-        if (res.ok) {
-          const data = await res.json();
+        const response = await fetch("/api/tasks");
+        if (response.ok) {
+          const data = await response.json();
           if (data.tasks && data.tasks.length > 0) {
             setTasks(data.tasks);
           } else {
-            // Default sample tasks if database is fresh
+            // Provide default sample tasks if database is empty
             setTasks([
               {
                 id: "1",
@@ -57,13 +57,13 @@ export default function LeadDashboard() {
           }
         }
       } catch (error) {
-        console.error("Error loading tasks:", error);
+        console.error("Error loading tasks from Firestore:", error);
       }
     }
     loadTasks();
   }, []);
 
-  // Toggle task completion status in Firestore
+  // Step 2: Function to toggle a task's completion status and update Firestore via updateDoc API
   async function toggleTask(id: string | number) {
     const targetTask = tasks.find((t) => t.id === id);
     if (!targetTask) return;
@@ -71,23 +71,26 @@ export default function LeadDashboard() {
     const newCompleted = !targetTask.completed;
     const newStatus = newCompleted ? "Completed" : "In Progress";
 
-    // Optimistic UI update
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: newCompleted, status: newStatus } : t))
+    // Update UI state immediately for responsive feel
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === id ? { ...task, completed: newCompleted, status: newStatus } : task
+      )
     );
 
     try {
+      // Send PATCH request to update the specific task document in Firestore
       await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed: newCompleted, status: newStatus }),
       });
     } catch (error) {
-      console.error("Error updating task in Firestore:", error);
+      console.error("Error updating task status in Firestore:", error);
     }
   }
 
-  // Create new task document in Firestore
+  // Step 3: Function for Team Lead to grab form input text and push a new document into the tasks collection (addDoc API)
   async function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -95,6 +98,7 @@ export default function LeadDashboard() {
     setIsSubmittingTask(true);
 
     try {
+      // Send POST request to add a new document into the tasks collection in Firestore
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -108,14 +112,15 @@ export default function LeadDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        setTasks((prev) => [data.task, ...prev]);
+        // Append the newly created task to state and reset form fields
+        setTasks((prevTasks) => [data.task, ...prevTasks]);
         setNewTitle("");
         setNewDueDate("");
         setNewDescription("");
         setShowForm(false);
       }
     } catch (error) {
-      console.error("Error pushing new task to Firestore collection:", error);
+      console.error("Error creating new task in Firestore:", error);
     } finally {
       setIsSubmittingTask(false);
     }

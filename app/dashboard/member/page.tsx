@@ -18,22 +18,22 @@ interface MemberTask {
 export default function MemberDashboard() {
   const [tasks, setTasks] = useState<MemberTask[]>([]);
 
-  // Fetch tasks from Firestore on mount
+  // Step 1: Use useEffect hook to fetch tasks from Firestore when the Member Dashboard loads
   useEffect(() => {
     async function loadTasks() {
       try {
-        const res = await fetch("/api/tasks");
-        if (res.ok) {
-          const data = await res.json();
+        const response = await fetch("/api/tasks");
+        if (response.ok) {
+          const data = await response.json();
           if (data.tasks && data.tasks.length > 0) {
             setTasks(data.tasks);
           } else {
-            // Default sample tasks if database is empty
+            // Default sample tasks shown if database has no tasks yet
             setTasks([
               {
                 id: "1",
                 title: "Finalize Q3 Marketing Report",
-                description: "Compile data from analytics team and draft the executive summary for the board meeting.",
+                description: "Compile data from analytics team and draft executive summary.",
                 status: "IN PROGRESS",
                 dueDate: "Oct 24, 2023",
                 assignedDate: "Oct 18, 2023",
@@ -54,28 +54,29 @@ export default function MemberDashboard() {
           }
         }
       } catch (error) {
-        console.error("Error loading member tasks:", error);
+        console.error("Error loading tasks from Firestore:", error);
       }
     }
     loadTasks();
   }, []);
 
-  // Update task completion in Firestore via UI checkbox / card click (updateDoc function)
+  // Step 2: Function linked to the UI checkbox / task card that calls updateDoc in Firestore to mark tasks complete or incomplete
   async function toggleTask(id: string | number) {
-    const targetTask = tasks.find((t) => t.id === id);
+    const targetTask = tasks.find((task) => task.id === id);
     if (!targetTask) return;
 
     const newCompleted = !targetTask.completed;
     const newStatus = newCompleted ? "DONE" : "IN PROGRESS";
 
-    // Optimistic UI update
-    setTasks((prev) =>
-      prev.map((task) =>
+    // Step 2a: Update local React state first so UI responds immediately
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
         task.id === id ? { ...task, completed: newCompleted, status: newStatus } : task
       )
     );
 
     try {
+      // Step 2b: Asynchronously call updateDoc API to update document fields in Firestore
       await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

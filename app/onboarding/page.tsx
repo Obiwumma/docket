@@ -4,16 +4,33 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import CreateTeamForm from "@/app/components/CreateTeamForm";
+import JoinTeamForm from "@/app/components/JoinTeamForm";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { update } = useSession();
   const [selectedRole, setSelectedRole] = useState<"lead" | "member" | null>(null);
+  const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+  const [showJoinTeamModal, setShowJoinTeamModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
   const handleSelectRole = async (role: "lead" | "member") => {
     setSelectedRole(role);
+
+    if (role === "lead") {
+      setShowCreateTeamModal(true);
+      setShowJoinTeamModal(false);
+      return;
+    }
+
+    if (role === "member") {
+      setShowJoinTeamModal(true);
+      setShowCreateTeamModal(false);
+      return;
+    }
+
     setIsSubmitting(true);
     setShowErrorBanner(false);
 
@@ -36,13 +53,9 @@ export default function OnboardingPage() {
       // 2. Update NextAuth session in browser
       await update({ role });
 
-      // 3. Redirect user to their role dashboard
+      // 3. Redirect user to member dashboard
       setIsSubmitting(false);
-      if (role === "lead") {
-        router.push("/dashboard/lead");
-      } else {
-        router.push("/dashboard/member");
-      }
+      router.push("/dashboard/member");
     } catch (error) {
       console.error("Error saving role to Firestore:", error);
       setShowErrorBanner(true);
@@ -96,7 +109,28 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {showCreateTeamModal ? (
+          <div className="flex flex-col items-center justify-center">
+            <button
+              onClick={() => setShowCreateTeamModal(false)}
+              className="self-start text-xs font-bold uppercase tracking-wider text-gray-300 hover:text-white mb-6 border-b border-gray-400"
+            >
+              ← BACK TO ROLE SELECTION
+            </button>
+            <CreateTeamForm />
+          </div>
+        ) : showJoinTeamModal ? (
+          <div className="flex flex-col items-center justify-center">
+            <button
+              onClick={() => setShowJoinTeamModal(false)}
+              className="self-start text-xs font-bold uppercase tracking-wider text-gray-300 hover:text-white mb-6 border-b border-gray-400"
+            >
+              ← BACK TO ROLE SELECTION
+            </button>
+            <JoinTeamForm />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div
             onClick={() => handleSelectRole("lead")}
             className={`border-2 p-8 transition cursor-pointer flex flex-col justify-between ${
@@ -191,6 +225,7 @@ export default function OnboardingPage() {
             </div>
           </div>
         </div>
+      )}
       </main>
 
     </div>
