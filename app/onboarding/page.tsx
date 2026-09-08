@@ -22,24 +22,31 @@ export default function OnboardingPage() {
     }
 
     try {
-      // Save role to Firestore database
-      await fetch("/api/user/role", {
+      // 1. Asynchronous API call to update user document in Firestore
+      const response = await fetch("/api/user/role", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role }),
       });
 
-      // Update NextAuth JWT session in browser
+      if (!response.ok) {
+        throw new Error("Failed to update role in Firestore");
+      }
+
+      // 2. Update NextAuth session in browser
       await update({ role });
+
+      // 3. Redirect user to their role dashboard
+      setIsSubmitting(false);
+      if (role === "lead") {
+        router.push("/dashboard/lead");
+      } else {
+        router.push("/dashboard/member");
+      }
     } catch (error) {
       console.error("Error saving role to Firestore:", error);
-    }
-
-    setIsSubmitting(false);
-    if (role === "lead") {
-      router.push("/dashboard/lead");
-    } else {
-      router.push("/dashboard/member");
+      setShowErrorBanner(true);
+      setIsSubmitting(false);
     }
   };
 
