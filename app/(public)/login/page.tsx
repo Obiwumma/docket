@@ -1,8 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+
+function AuthErrorBanner() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
+
+  if (!error) return null;
+
+  let errorMessage = "An error occurred during authentication. Please try again.";
+  if (error === "OAuthAccountNotLinked") {
+    errorMessage = "This email is already associated with another account provider. We have now updated settings so you can sign in directly.";
+  }
+
+  return (
+    <div className="mb-4 p-4 border-2 border-red-600 bg-red-50 text-red-800 text-sm font-semibold uppercase">
+      {errorMessage}
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [fullName, setFullName] = useState("");
@@ -124,10 +143,14 @@ export default function LoginPage() {
                 </p>
               </div>
 
+              <Suspense fallback={null}>
+                <AuthErrorBanner />
+              </Suspense>
+
               <div className="space-y-3 mb-6">
                 <button
                   type="button"
-                  onClick={() => signIn("google", { callbackUrl: "/onboarding" })}
+                  onClick={() => signIn("google", { callbackUrl: "/onboarding" }, { prompt: "select_account" })}
                   className="w-full h-12 border-2 border-[#091540] bg-white hover:bg-[#091540] text-[#091540] hover:text-white transition-colors flex items-center justify-center space-x-2 text-sm uppercase font-bold tracking-wider"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react"; // Added NextAuth import
 
 export default function LeadDashboard() {
   // Simple state for tasks
@@ -90,8 +91,27 @@ export default function LeadDashboard() {
           <Link href="/" className="text-2xl font-bold text-white tracking-tight">
             Docket<span className="text-[#1B2CC1]">.</span>
           </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-300">Team Lead Dashboard</span>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <Link href="/dashboard/member" className="text-gray-300 hover:text-white transition">
+              Member Dashboard
+            </Link>
+            <span className="bg-[#1B2CC1] text-white font-bold px-3 py-1 rounded text-xs">
+              Lead Dashboard
+            </span>
+            <Link href="/dashboard/chat" className="text-gray-300 hover:text-white transition">
+              Team Chat
+            </Link>
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("docket_user_role");
+                }
+                signOut({ callbackUrl: "/login" });
+              }}
+              className="ml-2 border border-gray-600 hover:border-white text-gray-300 hover:text-white px-3 py-1 text-xs font-bold uppercase transition-colors rounded"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>
@@ -243,24 +263,6 @@ export default function LeadDashboard() {
 
         {/* Weekly Progress Footer */}
         <div className="mt-6 border-t-2 border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-              Weekly Progress
-            </span>
-            <div className="flex items-center gap-4 w-full md:w-64">
-              <div className="h-3 flex-grow bg-gray-800 rounded relative overflow-hidden border border-gray-700">
-                <div
-                  className="h-full bg-[#1B2CC1] transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
-              </div>
-              <span className="text-xl font-bold text-white">{progressPercent}%</span>
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-300 max-w-md md:text-right">
-            Maintain momentum. {completedCount} of {totalCount} critical tasks completed this week.
-          </p>
         </div>
 
       </div>

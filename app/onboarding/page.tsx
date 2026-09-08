@@ -2,21 +2,45 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function OnboardingPage() {
+  const router = useRouter();
+  const { update } = useSession();
   const [selectedRole, setSelectedRole] = useState<"lead" | "member" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorBanner, setShowErrorBanner] = useState(false);
 
-  const handleSelectRole = (role: "lead" | "member") => {
+  const handleSelectRole = async (role: "lead" | "member") => {
     setSelectedRole(role);
     setIsSubmitting(true);
     setShowErrorBanner(false);
 
-    // Simulate onboarding setup delay
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("docket_user_role", role);
+    }
+
+    try {
+      // Save role to Firestore database
+      await fetch("/api/user/role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+
+      // Update NextAuth JWT session in browser
+      await update({ role });
+    } catch (error) {
+      console.error("Error saving role to Firestore:", error);
+    }
+
+    setIsSubmitting(false);
+    if (role === "lead") {
+      router.push("/dashboard/lead");
+    } else {
+      router.push("/dashboard/member");
+    }
   };
 
   const resetSelection = () => {

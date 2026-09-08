@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 export default function MemberDashboard() {
   // Simple array of tasks in state
@@ -86,8 +87,27 @@ export default function MemberDashboard() {
           <Link href="/" className="text-2xl font-bold text-white tracking-tight">
             Docket<span className="text-[#1B2CC1]">.</span>
           </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-300">Member Dashboard</span>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <span className="bg-[#1B2CC1] text-white font-bold px-3 py-1 rounded text-xs">
+              Member Dashboard
+            </span>
+            <Link href="/dashboard/lead" className="text-gray-300 hover:text-white transition">
+              Lead Dashboard
+            </Link>
+            <Link href="/dashboard/chat" className="text-gray-300 hover:text-white transition">
+              Team Chat
+            </Link>
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("docket_user_role");
+                }
+                signOut({ callbackUrl: "/login" });
+              }}
+              className="ml-2 border border-gray-600 hover:border-white text-gray-300 hover:text-white px-3 py-1 text-xs font-bold uppercase transition-colors rounded"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </header>
@@ -203,30 +223,6 @@ export default function MemberDashboard() {
 
           {/* Right Sidebar: Progress & Info */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            
-            {/* Progress Card */}
-            <div className="bg-[#1B2CC1] text-white p-6 rounded border border-blue-600 flex flex-col items-center justify-center text-center">
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-4">
-                Weekly Progress
-              </h3>
-              <div className="text-5xl font-extrabold my-2">
-                {progressPercent}%
-              </div>
-              <p className="text-sm text-blue-100 mt-2">
-                {completedCount} of {totalCount} tasks completed
-              </p>
-            </div>
-
-            {/* Simple Info / Tip Box */}
-            <div className="bg-white text-[#091540] p-6 rounded border-2 border-white flex flex-col gap-2">
-              <h3 className="text-lg font-bold uppercase tracking-wide">
-                Quick Tip
-              </h3>
-              <p className="text-sm text-gray-700">
-                Click on any task card to mark it as done or move it back to active tasks!
-              </p>
-            </div>
-
           </div>
 
         </div>
