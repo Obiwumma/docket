@@ -1,56 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
+import { db } from "@/lib/firebaseClient";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  query,
+  orderBy,
+  serverTimestamp,
+  QuerySnapshot,
+  QueryDocumentSnapshot,
+} from "firebase/firestore";
+
+interface ChatMessage {
+  id: string;
+  sender: string;
+  text: string;
+  time: string;
+  isMe: boolean;
+}
 
 export default function TeamChatPage() {
-  // Simple state for channels
+  // State for active chat channel
   const [activeChannel, setActiveChannel] = useState("general");
 
-  // Simple state for chat messages
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "Samuel",
-      text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus, minima??",
-      time: "10:15 AM",
-      isMe: false,
-    },
-    {
-      id: 2,
-      sender: "Marcus ",
-      text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus, minima",
-      time: "10:18 AM",
-      isMe: false,
-    },
-    {
-      id: 3,
-      sender: "You",
-      text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus, minima",
-      time: "10:22 AM",
-      isMe: true,
-    },
-  ]);
+  // State for storing live chat messages list
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  // State for the message input
+  // State for the message input box
   const [inputMessage, setInputMessage] = useState("");
 
-  // Function to handle sending a new message
-  function handleSendMessage(e: React.FormEvent) {
+  // Default display name for current user
+  const [currentUserName] = useState("You");
+
+  // Step 1: Plug Firestore onSnapshot listener into Chatroom ("live wire" for real-time messages)
+  useEffect(() => {
+    // Step 1a: Query the "messages" collection ordered by creation timestamp ascending
+    const messagesQuery = query(
+      collection(db, "messages"),
+      orderBy("createdAt", "asc")
+    );
+
+    // Step 1b: Set up onSnapshot listener to receive live message updates instantly
+    const unsubscribe = onSnapshot(
+      messagesQuery,
+      (snapshot: QuerySnapshot) => {
+        const liveMessages: ChatMessage[] = snapshot.docs.map((docSnapshot: QueryDocumentSnapshot) => {
+          const data = docSnapshot.data();
+          // Format Firestore timestamp or fallback to current time
+          const timestamp = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+          const timeString = timestamp.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          return {
+            id: docSnapshot.id,
+            sender: data.sender || "Anonymous",
+            text: data.text || "",
+            time: timeString,
+            isMe: data.sender === currentUserName || data.sender === "You",
+          };
+        });
+
+        // Step 1c: Update local React messages state with live wire data
+        setMessages(liveMessages);
+      },
+      (error: any) => {
+        console.error("Error listening to real-time chat messages:", error);
+      }
+    );
+
+    // Step 1d: Clean up the onSnapshot listener on component unmount
+    return () => unsubscribe();
+  }, [currentUserName]);
+
+  // Step 2: Function to post new message into Firestore using addDoc SDK method
+  async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
-    const newMessage = {
-      id: Date.now(),
-      sender: "You",
-      text: inputMessage,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isMe: true,
-    };
-
-    setMessages([...messages, newMessage]);
+    const textToSend = inputMessage.trim();
     setInputMessage("");
+
+    try {
+      // Step 2a: Push new document to "messages" collection with serverTimestamp
+      await addDoc(collection(db, "messages"), {
+        sender: currentUserName,
+        text: textToSend,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error pushing message document to Firestore:", error);
+    }
   }
 
   return (
@@ -88,26 +133,6 @@ export default function TeamChatPage() {
                 >
                   # general
                 </li>
-                {/* <li
-                  onClick={() => setActiveChannel("marketing")}
-                  className={`p-2 rounded cursor-pointer ${
-                    activeChannel === "marketing"
-                      ? "bg-[#1B2CC1] text-white font-bold"
-                      : "hover:bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  # marketing
-                </li> */}
-                {/* <li
-                  onClick={() => setActiveChannel("dev-updates")}
-                  className={`p-2 rounded cursor-pointer ${
-                    activeChannel === "dev-updates"
-                      ? "bg-[#1B2CC1] text-white font-bold"
-                      : "hover:bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  # dev-updates
-                </li> */}
               </ul>
             </div>
 
@@ -141,33 +166,39 @@ export default function TeamChatPage() {
             {/* Header for Active Channel */}
             <div className="border-b border-gray-200 pb-3 mb-4 flex items-center justify-between">
               <span className="font-bold text-lg text-[#091540]">#{activeChannel}</span>
-              {/* <span className="text-xs text-gray-500 font-semibold uppercase">3 Active Now</span> */}
+              <span className="text-xs text-[#1B2CC1] font-bold uppercase">Live Wire Connected</span>
             </div>
 
             {/* Messages Stream */}
             <div className="flex flex-col gap-4 overflow-y-auto mb-4 flex-1 pr-2 max-h-[360px]">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col max-w-[80%] ${
-                    msg.isMe ? "self-end items-end" : "self-start items-start"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-gray-600">{msg.sender}</span>
-                    <span className="text-[10px] text-gray-400">{msg.time}</span>
-                  </div>
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500 py-10">
+                  No messages yet. Send a message to start the conversation!
+                </div>
+              ) : (
+                messages.map((msg) => (
                   <div
-                    className={`p-3 rounded-lg text-sm font-medium ${
-                      msg.isMe
-                        ? "bg-[#1B2CC1] text-white rounded-br-none"
-                        : "bg-gray-200 text-gray-800 rounded-bl-none"
+                    key={msg.id}
+                    className={`flex flex-col max-w-[80%] ${
+                      msg.isMe ? "self-end items-end" : "self-start items-start"
                     }`}
                   >
-                    {msg.text}
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-gray-600">{msg.sender}</span>
+                      <span className="text-[10px] text-gray-400">{msg.time}</span>
+                    </div>
+                    <div
+                      className={`p-3 rounded-lg text-sm font-medium ${
+                        msg.isMe
+                          ? "bg-[#1B2CC1] text-white rounded-br-none"
+                          : "bg-gray-200 text-gray-800 rounded-bl-none"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Input Form */}
@@ -179,12 +210,12 @@ export default function TeamChatPage() {
                 placeholder="Type your message here..."
                 className="flex-1 border border-gray-300 p-2 rounded text-sm focus:outline-none focus:border-[#1B2CC1]"
               />
-              {/* <button
+              <button
                 type="submit"
-                className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-5 py-2 rounded text-sm transition"
+                className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-5 py-2 rounded text-sm transition cursor-pointer"
               >
                 Send
-              </button> */}
+              </button>
             </form>
           </div>
         </div>

@@ -3,9 +3,23 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
+import JoinRequestsList from "@/app/components/JoinRequestsList";
+import { db } from "@/lib/firebaseClient";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+  QuerySnapshot,
+  QueryDocumentSnapshot,
+} from "firebase/firestore";
 
 interface Task {
-  id: string | number;
+  id: string;
   title: string;
   assignee: string;
   dueDate: string;
@@ -25,53 +39,73 @@ export default function LeadDashboard() {
   const [newDueDate, setNewDueDate] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
-  // Step 1: Use useEffect hook to fetch existing tasks from Firestore when the component loads
+  // Step 1: Plug Firestore onSnapshot listener into Task grid ("live wire" real-time listener)
   useEffect(() => {
-    async function loadTasks() {
-      try {
-        const response = await fetch("/api/tasks");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.tasks && data.tasks.length > 0) {
-            setTasks(data.tasks);
-          } else {
-            // Provide default sample tasks if database is empty
-            setTasks([
-              {
-                id: "1",
-                title: "Q3 Marketing Strategy Deck",
-                assignee: "Sarah Jenkins",
-                dueDate: "Oct 12, 2023",
-                status: "In Progress",
-                completed: false,
-              },
-              {
-                id: "2",
-                title: "Client Onboarding Portal Update",
-                assignee: "Marcus Vance",
-                dueDate: "Oct 15, 2023",
-                status: "To Do",
-                completed: false,
-              },
-            ]);
-          }
+    // Step 1a: Create query to fetch tasks ordered by creation timestamp descending
+    const tasksQuery = query(
+      collection(db, "tasks"),
+      orderBy("createdAt", "desc")
+    );
+
+    // Step 1b: Attach onSnapshot live wire listener to automatically sync updates without page refresh
+    const unsubscribe = onSnapshot(
+      tasksQuery,
+      (snapshot: QuerySnapshot) => {
+        const liveTasks: Task[] = snapshot.docs.map((docSnapshot: QueryDocumentSnapshot) => {
+          const data = docSnapshot.data();
+          return {
+            id: docSnapshot.id,
+            title: data.title || "Untitled Task",
+            assignee: data.assignee || "Unassigned",
+            dueDate: data.dueDate || "No Due Date",
+            status: data.status || "To Do",
+            completed: Boolean(data.completed),
+            description: data.description || "",
+          };
+        });
+
+        // Step 1c: Set state with live Firestore data or fallback to sample tasks if empty
+        if (liveTasks.length > 0) {
+          setTasks(liveTasks);
+        } else {
+          setTasks([
+            {
+              id: "sample-1",
+              title: "Q3 Marketing Strategy Deck",
+              assignee: "Sarah Jenkins",
+              dueDate: "Oct 12, 2023",
+              status: "In Progress",
+              completed: false,
+            },
+            {
+              id: "sample-2",
+              title: "Client Onboarding Portal Update",
+              assignee: "Marcus Vance",
+              dueDate: "Oct 15, 2023",
+              status: "To Do",
+              completed: false,
+            },
+          ]);
         }
-      } catch (error) {
-        console.error("Error loading tasks from Firestore:", error);
+      },
+      (error: any) => {
+        console.error("Error listening to real-time tasks grid onSnapshot:", error);
       }
-    }
-    loadTasks();
+    );
+
+    // Step 1d: Clean up listener on component unmount
+    return () => unsubscribe();
   }, []);
 
-  // Step 2: Function to toggle a task's completion status and update Firestore via updateDoc API
-  async function toggleTask(id: string | number) {
+  // Step 2: Function using updateDoc to toggle task completion in real time in Firestore
+  async function toggleTask(id: string) {
     const targetTask = tasks.find((t) => t.id === id);
     if (!targetTask) return;
 
     const newCompleted = !targetTask.completed;
     const newStatus = newCompleted ? "Completed" : "In Progress";
 
-    // Update UI state immediately for responsive feel
+    // Step 2a: Optimistically update local state for responsive UI
     setTasks((previousTasks) =>
       previousTasks.map((task) =>
         task.id === id ? { ...task, completed: newCompleted, status: newStatus } : task
@@ -79,18 +113,20 @@ export default function LeadDashboard() {
     );
 
     try {
-      // Send PATCH request to update the specific task document in Firestore
-      await fetch(`/api/tasks/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: newCompleted, status: newStatus }),
-      });
+      // Step 2b: Call updateDoc to modify specific task document in Firestore
+      if (!id.startsWith("sample-")) {
+        const taskDocRef = doc(db, "tasks", id);
+        await updateDoc(taskDocRef, {
+          completed: newCompleted,
+          status: newStatus,
+        });
+      }
     } catch (error) {
-      console.error("Error updating task status in Firestore:", error);
+      console.error("Error updating task using updateDoc in Firestore:", error);
     }
   }
 
-  // Step 3: Function for Team Lead to grab form input text and push a new document into the tasks collection (addDoc API)
+  // Step 3: Function using addDoc to push a new task document into the tasks collection
   async function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -98,38 +134,32 @@ export default function LeadDashboard() {
     setIsSubmittingTask(true);
 
     try {
-      // Send POST request to add a new document into the tasks collection in Firestore
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle,
-          assignee: newAssignee,
-          dueDate: newDueDate || "Oct 30, 2023",
-          description: newDescription,
-        }),
+      // Step 3a: Call addDoc to push task payload into Firestore "tasks" collection
+      await addDoc(collection(db, "tasks"), {
+        title: newTitle,
+        assignee: newAssignee,
+        dueDate: newDueDate || "Oct 30, 2023",
+        description: newDescription,
+        status: "To Do",
+        completed: false,
+        createdAt: serverTimestamp(),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Append the newly created task to state and reset form fields
-        setTasks((prevTasks) => [data.task, ...prevTasks]);
-        setNewTitle("");
-        setNewDueDate("");
-        setNewDescription("");
-        setShowForm(false);
-      }
+      // Step 3b: Reset form input fields
+      setNewTitle("");
+      setNewDueDate("");
+      setNewDescription("");
+      setShowForm(false);
     } catch (error) {
-      console.error("Error creating new task in Firestore:", error);
+      console.error("Error adding task document to Firestore using addDoc:", error);
     } finally {
       setIsSubmittingTask(false);
     }
   }
 
-  // Calculate weekly progress percentage
+  // Calculate task counts
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length;
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-[#091540] text-white">
@@ -142,20 +172,23 @@ export default function LeadDashboard() {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between border-b-4 border-[#1B2CC1] pb-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
-              TEAM TASKS
+              TEAM TASKS (LIVE WIRE)
             </h1>
             <p className="text-gray-300 text-lg mt-1">
-              Create, assign, and track your team's work.
+              Create, assign, and track your team's work in real time.
             </p>
           </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-6 py-3 rounded transition flex items-center justify-center gap-2 self-start md:self-auto"
+            className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-6 py-3 rounded transition flex items-center justify-center gap-2 self-start md:self-auto cursor-pointer"
           >
             <span>{showForm ? "✕ CLOSE FORM" : "+ CREATE TASK"}</span>
           </button>
         </div>
+
+        {/* Join Requests Approval Widget */}
+        <JoinRequestsList />
 
         {/* New Task Form Section */}
         {showForm && (
@@ -219,9 +252,10 @@ export default function LeadDashboard() {
             <div className="flex justify-end mt-2">
               <button
                 type="submit"
-                className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded transition"
+                disabled={isSubmittingTask}
+                className="bg-[#1B2CC1] hover:bg-blue-700 text-white font-bold px-6 py-2 rounded transition cursor-pointer disabled:opacity-50"
               >
-                ASSIGN TASK
+                {isSubmittingTask ? "ASSIGNING..." : "ASSIGN TASK"}
               </button>
             </div>
           </form>
@@ -278,10 +312,6 @@ export default function LeadDashboard() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Weekly Progress Footer */}
-        <div className="mt-6 border-t-2 border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         </div>
 
       </div>

@@ -3,9 +3,20 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
+import { db } from "@/lib/firebaseClient";
+import {
+  collection,
+  onSnapshot,
+  updateDoc,
+  doc,
+  query,
+  orderBy,
+  QuerySnapshot,
+  QueryDocumentSnapshot,
+} from "firebase/firestore";
 
 interface MemberTask {
-  id: string | number;
+  id: string;
   title: string;
   description?: string;
   status: string;
@@ -18,57 +29,78 @@ interface MemberTask {
 export default function MemberDashboard() {
   const [tasks, setTasks] = useState<MemberTask[]>([]);
 
-  // Step 1: Use useEffect hook to fetch tasks from Firestore when the Member Dashboard loads
+  // Step 1: Plug Firestore onSnapshot listener into Member Task Grid ("live wire" real-time listener)
   useEffect(() => {
-    async function loadTasks() {
-      try {
-        const response = await fetch("/api/tasks");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.tasks && data.tasks.length > 0) {
-            setTasks(data.tasks);
-          } else {
-            // Default sample tasks shown if database has no tasks yet
-            setTasks([
-              {
-                id: "1",
-                title: "Finalize Q3 Marketing Report",
-                description: "Compile data from analytics team and draft executive summary.",
-                status: "IN PROGRESS",
-                dueDate: "Oct 24, 2023",
-                assignedDate: "Oct 18, 2023",
-                completed: false,
-                priority: "normal",
-              },
-              {
-                id: "2",
-                title: "Review UI Component Library Updates",
-                description: "Audit button and input states for accessibility compliance.",
-                status: "HIGH PRIORITY",
-                dueDate: "Today",
-                assignedDate: "Oct 20, 2023",
-                completed: false,
-                priority: "high",
-              },
-            ]);
-          }
+    // Step 1a: Create query to listen to tasks collection ordered by creation timestamp
+    const tasksQuery = query(
+      collection(db, "tasks"),
+      orderBy("createdAt", "desc")
+    );
+
+    // Step 1b: Attach onSnapshot live wire listener for instant task updates
+    const unsubscribe = onSnapshot(
+      tasksQuery,
+      (snapshot: QuerySnapshot) => {
+        const liveTasks: MemberTask[] = snapshot.docs.map((docSnapshot: QueryDocumentSnapshot) => {
+          const data = docSnapshot.data();
+          return {
+            id: docSnapshot.id,
+            title: data.title || "Untitled Assignment",
+            description: data.description || "No description provided.",
+            status: data.status || "IN PROGRESS",
+            dueDate: data.dueDate || "Oct 30, 2023",
+            assignedDate: "Recently",
+            completed: Boolean(data.completed),
+            priority: data.priority || "normal",
+          };
+        });
+
+        // Step 1c: Update state with live wire data or fallback to sample tasks if empty
+        if (liveTasks.length > 0) {
+          setTasks(liveTasks);
+        } else {
+          setTasks([
+            {
+              id: "sample-m1",
+              title: "Finalize Q3 Marketing Report",
+              description: "Compile data from analytics team and draft executive summary.",
+              status: "IN PROGRESS",
+              dueDate: "Oct 24, 2023",
+              assignedDate: "Oct 18, 2023",
+              completed: false,
+              priority: "normal",
+            },
+            {
+              id: "sample-m2",
+              title: "Review UI Component Library Updates",
+              description: "Audit button and input states for accessibility compliance.",
+              status: "HIGH PRIORITY",
+              dueDate: "Today",
+              assignedDate: "Oct 20, 2023",
+              completed: false,
+              priority: "high",
+            },
+          ]);
         }
-      } catch (error) {
-        console.error("Error loading tasks from Firestore:", error);
+      },
+      (error: any) => {
+        console.error("Error listening to Member tasks grid onSnapshot:", error);
       }
-    }
-    loadTasks();
+    );
+
+    // Step 1d: Clean up listener on component unmount
+    return () => unsubscribe();
   }, []);
 
-  // Step 2: Function linked to the UI checkbox / task card that calls updateDoc in Firestore to mark tasks complete or incomplete
-  async function toggleTask(id: string | number) {
+  // Step 2: Function linked to UI checkbox / card to call updateDoc in Firestore to mark tasks complete or incomplete
+  async function toggleTask(id: string) {
     const targetTask = tasks.find((task) => task.id === id);
     if (!targetTask) return;
 
     const newCompleted = !targetTask.completed;
     const newStatus = newCompleted ? "DONE" : "IN PROGRESS";
 
-    // Step 2a: Update local React state first so UI responds immediately
+    // Step 2a: Update local React state immediately for instant feedback
     setTasks((previousTasks) =>
       previousTasks.map((task) =>
         task.id === id ? { ...task, completed: newCompleted, status: newStatus } : task
@@ -76,17 +108,16 @@ export default function MemberDashboard() {
     );
 
     try {
-      // Step 2b: Asynchronously call updateDoc API to update document fields in Firestore
-      await fetch(`/api/tasks/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      // Step 2b: Asynchronously call updateDoc to modify document fields in Firestore
+      if (!id.startsWith("sample-")) {
+        const taskDocRef = doc(db, "tasks", id);
+        await updateDoc(taskDocRef, {
           completed: newCompleted,
           status: newStatus,
-        }),
-      });
+        });
+      }
     } catch (error) {
-      console.error("Error updating task status in Firestore:", error);
+      console.error("Error updating task status using updateDoc in Firestore:", error);
     }
   }
 
@@ -96,9 +127,6 @@ export default function MemberDashboard() {
   const activeTasks = tasks.filter((t) => !t.completed);
   const completedTasks = tasks.filter((t) => t.completed);
 
-  // Calculate progress percentage
-  const progressPercent = Math.round((completedCount / totalCount) * 100);
-
   return (
     <div className="min-h-screen bg-[#091540] text-white">
       <DashboardNavbar />
@@ -107,10 +135,10 @@ export default function MemberDashboard() {
       <div className="bg-[#091540] border-b border-gray-800 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col gap-3">
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
-            MY TASKS THIS WEEK
+            MY TASKS THIS WEEK (LIVE WIRE)
           </h1>
           <p className="text-gray-300 text-lg">
-            Everything assigned to you, in one place.
+            Everything assigned to you, updated instantly in real time.
           </p>
           <div className="mt-2 inline-block bg-[#1B2CC1] px-4 py-2 text-sm font-bold text-white rounded self-start">
             {totalCount} TASKS • {completedCount} COMPLETED
@@ -210,10 +238,6 @@ export default function MemberDashboard() {
                 ))}
               </>
             )}
-          </div>
-
-          {/* Right Sidebar: Progress & Info */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
           </div>
 
         </div>
