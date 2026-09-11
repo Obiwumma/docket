@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
 import JoinRequestsList from "@/app/components/JoinRequestsList";
+import TeamInfoBanner from "@/app/components/TeamInfoBanner";
 import { db } from "@/lib/firebaseClient";
 import {
   collection,
@@ -12,11 +14,13 @@ import {
   updateDoc,
   doc,
   query,
+  where,
+  getDocs,
   orderBy,
   serverTimestamp,
   QuerySnapshot,
   QueryDocumentSnapshot,
-} from "firebase/firestore";
+} from "@firebase/firestore";
 
 interface Task {
   id: string;
@@ -28,26 +32,79 @@ interface Task {
   description?: string;
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export default function LeadDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [isSubmittingTask, setIsSubmittingTask] = useState(false);
+  const { data: session } = useSession();
 
   // Form input states
   const [newTitle, setNewTitle] = useState("");
-  const [newAssignee, setNewAssignee] = useState("Sarah Jenkins");
+  const [newAssignee, setNewAssignee] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
-  // Step 1: Plug Firestore onSnapshot listener into Task grid ("live wire" real-time listener)
+  // Step 1: Memory boxes (state) for Team ID and Team Members list
+  const [teamId, setTeamId] = useState("");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+
+  // Step 2 & 3: Fetch Team ID from API and then query real Team Members from Firestore
   useEffect(() => {
-    // Step 1a: Create query to fetch tasks ordered by creation timestamp descending
+    async function fetchTeamAndMembers() {
+      try {
+        const response = await fetch("/api/team/info");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.team) {
+            const currentTeamId = data.team.teamId;
+            setTeamId(currentTeamId);
+
+            // Step 3: Fetch real team members from Firestore "users" collection
+            const membersQuery = query(
+              collection(db, "users"),
+              where("teamId", "==", currentTeamId),
+              where("role", "==", "member")
+            );
+
+            const membersSnapshot = await getDocs(membersQuery);
+            const fetchedMembers: TeamMember[] = membersSnapshot.docs.map(
+              (docSnapshot: QueryDocumentSnapshot) => {
+                const userData = docSnapshot.data();
+                return {
+                  id: docSnapshot.id,
+                  name: userData.name || userData.email || "Team Member",
+                  email: userData.email || "",
+                };
+              }
+            );
+
+            setTeamMembers(fetchedMembers);
+            if (fetchedMembers.length > 0 && !newAssignee) {
+              setNewAssignee(fetchedMembers[0].name);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching team info or members:", error);
+      }
+    }
+
+    fetchTeamAndMembers();
+  }, []);
+
+  // Real-time listener for tasks
+  useEffect(() => {
     const tasksQuery = query(
       collection(db, "tasks"),
       orderBy("createdAt", "desc")
     );
 
-    // Step 1b: Attach onSnapshot live wire listener to automatically sync updates without page refresh
     const unsubscribe = onSnapshot(
       tasksQuery,
       (snapshot: QuerySnapshot) => {
@@ -64,7 +121,6 @@ export default function LeadDashboard() {
           };
         });
 
-        // Step 1c: Set state with live Firestore data or fallback to sample tasks if empty
         if (liveTasks.length > 0) {
           setTasks(liveTasks);
         } else {
@@ -93,7 +149,6 @@ export default function LeadDashboard() {
       }
     );
 
-    // Step 1d: Clean up listener on component unmount
     return () => unsubscribe();
   }, []);
 
@@ -137,8 +192,10 @@ export default function LeadDashboard() {
       // Step 3a: Call addDoc to push task payload into Firestore "tasks" collection
       await addDoc(collection(db, "tasks"), {
         title: newTitle,
-        assignee: newAssignee,
-        dueDate: newDueDate || "Oct 30, 2023",
+        teamId: teamId || "X7K9P2",
+        assignee: newAssignee || "Unassigned",
+        // assigneeEmail: ,
+        dueDate: newDueDate,
         description: newDescription,
         status: "To Do",
         completed: false,
@@ -187,6 +244,9 @@ export default function LeadDashboard() {
           </button>
         </div>
 
+        {/* Team Details & Unique Team ID Banner */}
+        <TeamInfoBanner />
+
         {/* Join Requests Approval Widget */}
         <JoinRequestsList />
 
@@ -220,10 +280,19 @@ export default function LeadDashboard() {
                   onChange={(e) => setNewAssignee(e.target.value)}
                   className="border border-gray-400 p-2 rounded focus:outline-none focus:border-[#1B2CC1] bg-white cursor-pointer"
                 >
-                  <option value="Sarah Jenkins">Sarah Jenkins</option>
-                  <option value="Marcus Vance">Marcus Vance</option>
-                  <option value="Elena Rostova">Elena Rostova</option>
-                  <option value="David Chen">David Chen</option>
+                  {teamMembers.length > 0 ? (
+                    teamMembers.map((member) => (
+                      <option key={member.id} value={member.name}>
+                        {member.name} {member.email ? `(${member.email})` : ""}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Unassigned">No team members joined yet</option>
+                      <option value="Sarah Jenkins">Sarah Jenkins (Sample)</option>
+                      <option value="Marcus Vance">Marcus Vance (Sample)</option>
+                    </>
+                  )}
                 </select>
               </div>
 

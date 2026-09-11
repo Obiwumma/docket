@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
 import { db } from "@/lib/firebaseClient";
 import {
@@ -10,10 +11,11 @@ import {
   updateDoc,
   doc,
   query,
+  where,
   orderBy,
   QuerySnapshot,
   QueryDocumentSnapshot,
-} from "firebase/firestore";
+} from "@firebase/firestore";
 
 interface MemberTask {
   id: string;
@@ -24,40 +26,79 @@ interface MemberTask {
   assignedDate?: string;
   completed: boolean;
   priority?: string;
+  assignee?: string;
+  teamId?: string;
 }
 
 export default function MemberDashboard() {
   const [tasks, setTasks] = useState<MemberTask[]>([]);
+  const [teamId, setTeamId] = useState<string>("");
+  const { data: session } = useSession();
 
-  // Step 1: Plug Firestore onSnapshot listener into Member Task Grid ("live wire" real-time listener)
+  const memberName = session?.user?.name || session?.user?.email;
+
+  // Step 1: Fetch Member's Team Info
   useEffect(() => {
-    // Step 1a: Create query to listen to tasks collection ordered by creation timestamp
-    const tasksQuery = query(
-      collection(db, "tasks"),
-      orderBy("createdAt", "desc")
-    );
+    async function fetchTeamInfo() {
+      try {
+        const response = await fetch("/api/team/info");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.team) {
+            setTeamId(data.team.teamId);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching team info for member:", error);
+      }
+    }
 
-    // Step 1b: Attach onSnapshot live wire listener for instant task updates
+    fetchTeamInfo();
+  }, []);
+
+  // Step 2: Plug Firestore onSnapshot listener filtering tasks assigned to this member
+  useEffect(() => {
+    // Build query constraints: filter by teamId if available
+    const queryConstraints: any[] = [orderBy("createdAt", "desc")];
+    if (teamId) {
+      queryConstraints.unshift(where("teamId", "==", teamId));
+    }
+
+    const tasksQuery = query(collection(db, "tasks"), ...queryConstraints);
+
     const unsubscribe = onSnapshot(
       tasksQuery,
       (snapshot: QuerySnapshot) => {
-        const liveTasks: MemberTask[] = snapshot.docs.map((docSnapshot: QueryDocumentSnapshot) => {
-          const data = docSnapshot.data();
-          return {
-            id: docSnapshot.id,
-            title: data.title || "Untitled Assignment",
-            description: data.description || "No description provided.",
-            status: data.status || "IN PROGRESS",
-            dueDate: data.dueDate || "Oct 30, 2023",
-            assignedDate: "Recently",
-            completed: Boolean(data.completed),
-            priority: data.priority || "normal",
-          };
-        });
+        const allLiveTasks: MemberTask[] = snapshot.docs.map(
+          (docSnapshot: QueryDocumentSnapshot) => {
+            const data = docSnapshot.data();
+            return {
+              id: docSnapshot.id,
+              title: data.title || "Untitled Assignment",
+              description: data.description || "No description provided.",
+              status: data.status || "IN PROGRESS",
+              dueDate: data.dueDate || "Oct 30, 2023",
+              assignedDate: "Recently",
+              completed: Boolean(data.completed),
+              priority: data.priority || "normal",
+              assignee: data.assignee || "",
+              teamId: data.teamId || "",
+            };
+          }
+        );
 
-        // Step 1c: Update state with live wire data or fallback to sample tasks if empty
-        if (liveTasks.length > 0) {
-          setTasks(liveTasks);
+        // Filter tasks assigned to this specific member (or sample fallback if empty)
+        const myTasks = memberName
+          ? allLiveTasks.filter(
+              (task) =>
+                !task.assignee ||
+                task.assignee.toLowerCase() === memberName.toLowerCase() ||
+                task.assignee.toLowerCase().includes((session?.user?.name || "").toLowerCase())
+            )
+          : allLiveTasks;
+
+        if (myTasks.length > 0) {
+          setTasks(myTasks);
         } else {
           setTasks([
             {
@@ -70,16 +111,6 @@ export default function MemberDashboard() {
               completed: false,
               priority: "normal",
             },
-            {
-              id: "sample-m2",
-              title: "Review UI Component Library Updates",
-              description: "Audit button and input states for accessibility compliance.",
-              status: "HIGH PRIORITY",
-              dueDate: "Today",
-              assignedDate: "Oct 20, 2023",
-              completed: false,
-              priority: "high",
-            },
           ]);
         }
       },
@@ -88,9 +119,8 @@ export default function MemberDashboard() {
       }
     );
 
-    // Step 1d: Clean up listener on component unmount
     return () => unsubscribe();
-  }, []);
+  }, [teamId, memberName, session]);
 
   // Step 2: Function linked to UI checkbox / card to call updateDoc in Firestore to mark tasks complete or incomplete
   async function toggleTask(id: string) {
@@ -134,10 +164,11 @@ export default function MemberDashboard() {
       {/* Hero / Title Section */}
       <div className="bg-[#091540] border-b border-gray-800 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col gap-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
-            MY TASKS THIS WEEK (LIVE WIRE)
-          </h1>
-          <p className="text-gray-300 text-lg">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wide">
+              MY TASKS THIS WEEK (LIVE WIRE)
+            </h1>
+            <p className="text-gray-300 text-lg">
             Everything assigned to you, updated instantly in real time.
           </p>
           <div className="mt-2 inline-block bg-[#1B2CC1] px-4 py-2 text-sm font-bold text-white rounded self-start">
@@ -145,6 +176,7 @@ export default function MemberDashboard() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Main Content Area */}
       <div className="max-w-6xl mx-auto py-10 px-6">
