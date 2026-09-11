@@ -2,18 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import DashboardNavbar from "@/app/components/DashboardNavbar";
 import { db } from "@/lib/firebaseClient";
 import {
   collection,
   onSnapshot,
   addDoc,
+  getDocs,
   query,
+  where,
   orderBy,
   serverTimestamp,
   QuerySnapshot,
   QueryDocumentSnapshot,
-} from "firebase/firestore";
+} from "@firebase/firestore";
 
 interface ChatMessage {
   id: string;
@@ -21,6 +24,11 @@ interface ChatMessage {
   text: string;
   time: string;
   isMe: boolean;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
 }
 
 export default function TeamChatPage() {
@@ -34,13 +42,60 @@ export default function TeamChatPage() {
   const [inputMessage, setInputMessage] = useState("");
 
   // Default display name for current user
-  const [currentUserName] = useState("You");
+  // const [currentUserName] = useState("You");
+
+  const [teamId, setTeamId] = useState("");
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+
+
+  const {data: session} = useSession();
+  const userName = session?.user?.name || "Team Member";
+  const userEmail = session?.user?.email;
+
+  // Fetch current teamId on mount
+  useEffect(() => {
+    async function fetchTeamInfo() {
+      const res = await fetch("/api/team/info");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.team) {
+          setTeamId(data.team.teamId);
+        }
+      }
+    }
+    fetchTeamInfo();
+  }, []);
+
+
+  useEffect(() => {
+    if (!teamId) return;
+
+    async function loadTeamMembers() {
+      const membersQuery = query(
+        collection(db, "users"),
+        where("teamId", "==", teamId)
+      );
+      const snapshot = await getDocs(membersQuery);
+      const membersList = snapshot.docs.map((doc:QueryDocumentSnapshot) => ({
+        id: doc.id,
+        name: doc.data().name || doc.data().email || "Team Member",
+      }));
+      setTeamMembers(membersList);
+    }
+
+    loadTeamMembers();
+  }, [teamId]);
+
+
 
   // Step 1: Plug Firestore onSnapshot listener into Chatroom ("live wire" for real-time messages)
   useEffect(() => {
-    // Step 1a: Query the "messages" collection ordered by creation timestamp ascending
+    if (!teamId) return;
+
+
     const messagesQuery = query(
       collection(db, "messages"),
+      where("teamId", "==", teamId),
       orderBy("createdAt", "asc")
     );
 
@@ -59,10 +114,10 @@ export default function TeamChatPage() {
 
           return {
             id: docSnapshot.id,
-            sender: data.sender || "Anonymous",
+            sender: data.sender || "Team member",
             text: data.text || "",
             time: timeString,
-            isMe: data.sender === currentUserName || data.sender === "You",
+            isMe: data.senderEmail === userEmail || data.sender === userName,
           };
         });
 
@@ -76,7 +131,7 @@ export default function TeamChatPage() {
 
     // Step 1d: Clean up the onSnapshot listener on component unmount
     return () => unsubscribe();
-  }, [currentUserName]);
+  }, [teamId, userName, userEmail]);
 
   // Step 2: Function to post new message into Firestore using addDoc SDK method
   async function handleSendMessage(e: React.FormEvent) {
@@ -89,7 +144,9 @@ export default function TeamChatPage() {
     try {
       // Step 2a: Push new document to "messages" collection with serverTimestamp
       await addDoc(collection(db, "messages"), {
-        sender: currentUserName,
+        teamId: teamId,
+        sender: userName,
+        senderEmail: userEmail,
         text: textToSend,
         createdAt: serverTimestamp(),
       });
@@ -138,25 +195,15 @@ export default function TeamChatPage() {
 
             <div>
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                Team Members (4)
+                Team Members ({teamMembers.length})
               </h2>
               <ul className="flex flex-col gap-2 text-sm font-semibold">
-                <li className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                  Sarah Jenkins
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                  Marcus Vance
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                  David Chen
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
-                  Elena Rostova
-                </li>
+                {teamMembers.map((member) => (
+                  <li key={member.id} className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    {member.name}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
