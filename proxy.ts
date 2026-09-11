@@ -1,9 +1,9 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
-// NextAuth withAuth middleware wrapper protects specified routes automatically
+// NextAuth withAuth wrapper protects specified routes automatically via proxy
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     // Step 1: Retrieve the user token and target URL path
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
@@ -33,7 +33,7 @@ export default withAuth(
   }
 );
 
-// Step 7: Configure matchers for the routes protected by this middleware
+// Step 7: Configure matchers for the routes protected by this proxy
 export const config = {
   matcher: ["/dashboard/:path*", "/onboarding/:path*"],
 };
